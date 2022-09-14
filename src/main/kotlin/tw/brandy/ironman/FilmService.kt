@@ -1,50 +1,37 @@
 package tw.brandy.ironman
-import kotlinx.datetime.LocalDate
+import io.smallrye.mutiny.coroutines.awaitSuspending
 import kotlinx.datetime.toJavaLocalDate
+import kotlinx.datetime.toKotlinLocalDate
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
 class FilmService(val filmRepository: FilmRepository) {
 
-    private val films: MutableList<Film> = ArrayList<Film>()
+    suspend fun getAllFilms() = filmRepository.findAllAsync().map(entityToModel)
 
-    init {
-        films.apply {
-            add(
-                Film(
-                    episodeID = 4,
-                    title = "A New Hope",
-                    director = "George Lucas",
-                    releaseDate = LocalDate.parse("1977-05-25")
-                )
-            )
+    suspend fun getFilmCount() = filmRepository.count().awaitSuspending()
 
-            Film(
-                episodeID = 5,
-                title = "The Empire Strikes Back",
-                director = "George Lucas",
-                releaseDate = LocalDate.parse("1980-05-21")
-            ).let { add(it) }
+    suspend fun getFilm(id: Int) = filmRepository.findByEpisodeId(id)?.let(entityToModel)
+    suspend fun save(film: Film) = film.let(modelToEntity)
+        .let(filmRepository::persist)
+        .awaitSuspending().let(entityToModel)
+    suspend fun update(film: Film) = filmRepository.findByEpisodeId(film.episodeID)
+        ?.let { film.let(modelToEntity).copy(id = it.id) }
+        ?.let { filmRepository.update(it) }?.awaitSuspending()?.let(entityToModel)
+    suspend fun delete(id: Int) = filmRepository.findByEpisodeId(id)
+        ?.let { filmRepository.delete(it) }?.awaitSuspending()
 
-            Film(
-                episodeID = 5,
-                title = "Return Of The Jedi",
-                director = "George Lucas",
-                releaseDate = LocalDate.parse("1983-05-25")
-            ).let(::add)
-        }
+    private val modelToEntity: (Film) -> (FilmEntity) = { film ->
+        FilmEntity(
+            title = film.title,
+            episodeId = film.episodeID,
+            director = film.director,
+            releaseDate = film.releaseDate.toJavaLocalDate()
+        )
     }
 
-    fun getAllFilms() = films.toList()
-
-    fun getFilmCount() = filmRepository.count()
-
-    fun getFilm(id: Int) = films.first { id == it.episodeID }
-    fun save(film: Film) = FilmEntity().apply {
-        title = film.title
-        episodeId = film.episodeID
-        director = film.director
-        releaseDate = film.releaseDate.toJavaLocalDate()
-    }.let(filmRepository::persist)
+    private val entityToModel: (FilmEntity) -> (Film) = {
+        Film(it.title, it.episodeId, it.director, it.releaseDate.toKotlinLocalDate())
+    }
 }
