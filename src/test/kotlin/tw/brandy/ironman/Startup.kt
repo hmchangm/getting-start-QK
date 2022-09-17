@@ -39,6 +39,7 @@ class Startup(val filmRepository: FilmRepository) {
                     releaseDate = LocalDate.parse("1983-05-21").toJavaLocalDate()
                 )
             ).let { filmRepository.persist(it) }.awaitSuspending()
+            println("Data inserts ${filmRepository.findAllAsync()}")
         }
     }
 }

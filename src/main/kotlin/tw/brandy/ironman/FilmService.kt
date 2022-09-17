@@ -22,7 +22,7 @@ class FilmService(val filmRepository: FilmRepository) {
     suspend fun delete(id: Int) = filmRepository.findByEpisodeId(id)
         ?.let { filmRepository.delete(it) }?.awaitSuspending()
 
-    private val modelToEntity: (Film) -> (FilmEntity) = { film ->
+    private val modelToEntity: (Film) -> FilmEntity = { film ->
         FilmEntity(
             title = film.title,
             episodeId = film.episodeID,
@@ -31,7 +31,7 @@ class FilmService(val filmRepository: FilmRepository) {
         )
     }
 
-    private val entityToModel: (FilmEntity) -> (Film) = {
+    private val entityToModel: (FilmEntity) -> Film = {
         Film(it.title, it.episodeId, it.director, it.releaseDate.toKotlinLocalDate())
     }
 }
