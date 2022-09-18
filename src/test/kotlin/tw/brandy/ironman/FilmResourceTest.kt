@@ -35,7 +35,7 @@ class FilmResourceTest {
 
     @Test
     @Order(1)
-    fun `test add `() {
+    fun `test add`() {
         Given {
             contentType("application/json")
             body(
