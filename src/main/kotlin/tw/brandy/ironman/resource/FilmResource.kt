@@ -22,14 +22,13 @@ class FilmResource(val filmService: FilmService, val mapper: ObjectMapper) {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     suspend fun list(): RestResponse<String> = filmService.getAllFilms()
-        .fold(ifLeft = { AppError.toResponse(it) }, ifRight = (toJsonResponse))
-
+        .toRestResponse()
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     suspend fun getById(id: Int) = filmService.getFilm(id)
-        .fold(ifLeft = { AppError.toResponse(it) }, ifRight = (toJsonResponse))
+        .toRestResponse()
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -56,13 +55,11 @@ class FilmResource(val filmService: FilmService, val mapper: ObjectMapper) {
     suspend fun count() = filmService.getFilmCount()
         .toRestResponse()
 
-    val toJsonResponse: (Any) -> RestResponse<String> = { obj ->
-        mapper.writeValueAsString(obj).let { RestResponse.ok(it) }
-    }
-
     fun Either<AppError, Any>.toRestResponse(): RestResponse<String> =
         this.fold(
             ifLeft = { AppError.toResponse(it) },
-            ifRight = (toJsonResponse)
+            ifRight = { obj ->
+                mapper.writeValueAsString(obj).let { RestResponse.ok(it) }
+            }
         )
 }
