@@ -1,4 +1,4 @@
-package tw.brandy.ironman
+package tw.brandy.ironman.resource
 
 import javax.ws.rs.GET
 import javax.ws.rs.Path
