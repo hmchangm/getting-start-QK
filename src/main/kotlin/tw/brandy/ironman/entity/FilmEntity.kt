@@ -1,4 +1,4 @@
-package tw.brandy.ironman
+package tw.brandy.ironman.entity
 
 import io.quarkus.mongodb.panache.kotlin.PanacheMongoEntityBase
 import org.bson.codecs.pojo.annotations.BsonCreator
