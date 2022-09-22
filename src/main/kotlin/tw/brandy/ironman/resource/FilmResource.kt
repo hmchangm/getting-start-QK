@@ -16,50 +16,43 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 
 @Path("/films")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 class FilmResource(val filmService: FilmService, val mapper: ObjectMapper) {
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     suspend fun list(): RestResponse<String> = filmService.getAllFilms()
         .toRestResponse()
+
     @GET
     @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     suspend fun getById(id: Int) = filmService.getFilm(id)
         .toRestResponse()
 
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     suspend fun add(film: Film) = filmService.save(film)
         .toRestResponse()
 
     @PUT
     @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     suspend fun update(film: Film) = filmService.update(film)
         .toRestResponse()
 
     @DELETE
     @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
     suspend fun delete(id: Int) = filmService.delete(id)
         .toRestResponse()
 
     @GET
     @Path("/count")
-    @Produces(MediaType.APPLICATION_JSON)
     suspend fun count() = filmService.getFilmCount()
         .toRestResponse()
 
     fun Either<AppError, Any>.toRestResponse(): RestResponse<String> =
         this.fold(
-            ifLeft = { AppError.toResponse(it) },
             ifRight = { obj ->
                 mapper.writeValueAsString(obj).let { RestResponse.ok(it) }
-            }
+            },
+            ifLeft = { AppError.toResponse(it) }
         )
 }
