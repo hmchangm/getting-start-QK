@@ -10,14 +10,14 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native-micro -t quarkus/getting-start .
+# podman build -f src/main/docker/Dockerfile.native-micro -t quarkus/getting-start .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/getting-start
+# podman run -i --rm -p 8080:8080 quarkus/getting-start
 #
 ###
-FROM quay.io/quarkus/quarkus-micro-image:1.0
+FROM docker.io/frolvlad/alpine-glibc:alpine-3.15_glibc-2.34
 WORKDIR /work/
 RUN chown 1001 /work \
     && chmod "g+rwX" /work \
