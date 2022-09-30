@@ -4,9 +4,4 @@ import io.quarkus.runtime.annotations.RegisterForReflection
 import java.time.LocalDate
 
 @RegisterForReflection
-data class UpsertFilm(
-    val title: String,
-    val episodeID: Int,
-    val director: String,
-    val releaseDate: LocalDate
-)
+data class UpsertFilm(val title: String, val episodeID: Int, val director: String, val releaseDate: LocalDate)

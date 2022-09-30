@@ -9,7 +9,7 @@ import tw.brandy.ironman.entity.User
 
 object UserService {
 
-    fun fromIdToken(idToken: JsonWebToken?) = idToken.toOption().toEither { AppError.idTokenEmpty() }.flatMap {
+    fun fromAccessToken(accessToken: JsonWebToken?) = accessToken.toOption().toEither { AppError.idTokenEmpty() }.flatMap {
         Either.catch {
             User(it)
         }.mapLeft { AppError.CreateUserFail(it) }
