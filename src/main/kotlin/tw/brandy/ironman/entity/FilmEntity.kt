@@ -13,5 +13,6 @@ data class FilmEntity @BsonCreator constructor(
     @BsonProperty("title") var title: String,
     @BsonProperty("episodeId") var episodeId: Int,
     @BsonProperty("director") var director: String,
-    @BsonProperty("releaseDate") var releaseDate: LocalDate
+    @BsonProperty("releaseDate") var releaseDate: LocalDate,
+    @BsonProperty("updater") var updater: String
 ) : PanacheMongoEntityBase()

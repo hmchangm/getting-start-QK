@@ -13,16 +13,9 @@ import javax.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class FilmRepository {
     suspend fun findByEpisodeId(id: Int): Either<AppError, FilmEntity> = Either.catch {
-        INSTANCE.find(
-            FilmEntity::class.java,
-            "episodeId",
-            id
-        ).firstResult().awaitSuspending()
+        INSTANCE.find(FilmEntity::class.java, "episodeId", id).firstResult().awaitSuspending()
     }.mapLeft { AppError.DatabaseProblem(it) }
-        .flatMap {
-            it.toOption()
-                .toEither(ifEmpty = { AppError.NoThisFilm(id) })
-        }
+        .flatMap { it.toOption().toEither(ifEmpty = { AppError.NoThisFilm(id) }) }
         .flatMap(anyToEntity)
     suspend fun findAll(): Either<AppError, List<FilmEntity>> = Either.catch {
         INSTANCE.findAll(FilmEntity::class.java).list().awaitSuspending()

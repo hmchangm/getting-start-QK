@@ -1,11 +1,16 @@
 package tw.brandy.ironman.resource
 
 import arrow.core.Either
+import arrow.core.flatMap
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.eclipse.microprofile.jwt.JsonWebToken
 import org.jboss.resteasy.reactive.RestResponse
 import tw.brandy.ironman.AppError
 import tw.brandy.ironman.entity.Film
+import tw.brandy.ironman.entity.UpsertFilm
 import tw.brandy.ironman.service.FilmService
+import tw.brandy.ironman.service.UserService
+import javax.inject.Inject
 import javax.ws.rs.Consumes
 import javax.ws.rs.DELETE
 import javax.ws.rs.GET
@@ -20,6 +25,9 @@ import javax.ws.rs.core.MediaType
 @Consumes(MediaType.APPLICATION_JSON)
 class FilmResource(val filmService: FilmService, val mapper: ObjectMapper) {
 
+    @Inject
+    var idToken: JsonWebToken? = null
+
     @GET
     suspend fun list(): RestResponse<String> = filmService.getAllFilms()
         .toRestResponse()
@@ -30,12 +38,16 @@ class FilmResource(val filmService: FilmService, val mapper: ObjectMapper) {
         .toRestResponse()
 
     @POST
-    suspend fun add(film: Film) = filmService.save(film)
+    suspend fun add(film: UpsertFilm) = UserService.fromIdToken(idToken).map { user ->
+        Film(film.title, film.episodeID, film.director, film.releaseDate, user.userName)
+    }.flatMap { filmService.save(it) }
         .toRestResponse()
 
     @PUT
     @Path("/{id}")
-    suspend fun update(film: Film) = filmService.update(film)
+    suspend fun update(film: UpsertFilm) = UserService.fromIdToken(idToken).map { user ->
+        Film(film.title, film.episodeID, film.director, film.releaseDate, user.userName)
+    }.flatMap { filmService.update(it) }
         .toRestResponse()
 
     @DELETE

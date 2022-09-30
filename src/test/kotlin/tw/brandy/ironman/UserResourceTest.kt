@@ -7,6 +7,7 @@ import io.restassured.module.kotlin.extensions.When
 import io.smallrye.jwt.build.Jwt
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.jupiter.api.Test
+import tw.brandy.ironman.test.TestUtil.getAccessToken
 
 @QuarkusTest
 class UserResourceTest {
@@ -23,10 +24,4 @@ class UserResourceTest {
         }
     }
 
-    private fun getAccessToken(userName: String): String {
-        return Jwt.preferredUserName(userName)
-            .issuer("https://server.example.com")
-            .audience("https://service.example.com")
-            .sign()
-    }
 }

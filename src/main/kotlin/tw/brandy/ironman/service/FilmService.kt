@@ -29,11 +29,12 @@ class FilmService(val filmRepository: FilmRepository) {
             title = film.title,
             episodeId = film.episodeID,
             director = film.director,
-            releaseDate = film.releaseDate
+            releaseDate = film.releaseDate,
+            updater = film.updater
         )
     }
 
     private val entityToModel: (FilmEntity) -> Film = {
-        Film(it.title, it.episodeId, it.director, it.releaseDate)
+        Film(it.title, it.episodeId, it.director, it.releaseDate, it.updater)
     }
 }

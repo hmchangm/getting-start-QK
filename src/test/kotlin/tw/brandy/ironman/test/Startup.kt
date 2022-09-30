@@ -25,21 +25,24 @@ class Startup(val filmRepository: FilmRepository) {
                     episodeId = 4,
                     title = "A New Hope",
                     director = "George Lucas",
-                    releaseDate = LocalDate.parse("1977-05-25")
+                    releaseDate = LocalDate.parse("1977-05-25"),
+                    updater = "brandy"
                 )
             ).plus(
                 FilmEntity(
                     episodeId = 5,
                     title = "The Empire Strikes Back",
                     director = "George Lucas",
-                    releaseDate = LocalDate.parse("1980-05-21")
+                    releaseDate = LocalDate.parse("1980-05-21"),
+                    updater = "louis"
                 )
             ).plus(
                 FilmEntity(
                     episodeId = 6,
                     title = "Return Of The Jedi",
                     director = "George Lucas",
-                    releaseDate = LocalDate.parse("1983-05-21")
+                    releaseDate = LocalDate.parse("1983-05-21"),
+                    updater = "brandy"
                 )
             ).let { list -> list.traverse { filmRepository.persistOrUpdate(it) } }
             println("Data inserts ${filmRepository.findAll()}")
