@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestMethodOrder
-import tw.brandy.ironman.entity.Film
 import tw.brandy.ironman.entity.UpsertFilm
 import tw.brandy.ironman.test.TestUtil
 import java.time.LocalDate
@@ -23,6 +22,7 @@ import java.time.LocalDate
 class FilmResourceTest {
 
     @Test
+    @Order(1)
     fun `test list all`() {
         Given {
             contentType(ContentType.JSON)
@@ -36,7 +36,7 @@ class FilmResourceTest {
     }
 
     @Test
-    @Order(1)
+    @Order(2)
     fun `test add`() {
         Given {
             contentType("application/json")
@@ -55,7 +55,7 @@ class FilmResourceTest {
     }
 
     @Test
-    @Order(2)
+    @Order(3)
     fun `test update after add`() {
         Given {
             contentType("application/json")
@@ -73,7 +73,7 @@ class FilmResourceTest {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     fun `test delete`() {
         Given { auth().oauth2(TestUtil.getAccessToken("alice")) } When {
             delete("/films/100")

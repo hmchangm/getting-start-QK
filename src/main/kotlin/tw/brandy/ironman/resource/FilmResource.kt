@@ -45,8 +45,8 @@ class FilmResource(val filmService: FilmService, val mapper: ObjectMapper) {
 
     @PUT
     @Path("/{id}")
-    suspend fun update(film: UpsertFilm) = UserService.fromIdToken(idToken).map { user ->
-        Film(film.title, film.episodeID, film.director, film.releaseDate, user.userName)
+    suspend fun update(id: Int, film: UpsertFilm) = UserService.fromIdToken(idToken).map { user ->
+        Film(film.title, id, film.director, film.releaseDate, user.userName)
     }.flatMap { filmService.update(it) }
         .toRestResponse()
 

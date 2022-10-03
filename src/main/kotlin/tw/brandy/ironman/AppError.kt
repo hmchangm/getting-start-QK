@@ -7,7 +7,7 @@ sealed class AppError {
     data class DatabaseProblem(val e: Throwable) : AppError()
     class JsonSerializationFail(val e: Throwable) : AppError()
     data class NoThisFilm(val epId: Int) : AppError()
-    data class CastToFilmFail(val obj: Any) : AppError()
+    data class RowToFilmFail(val obj: Any) : AppError()
     class idTokenEmpty : AppError()
     class CreateUserFail(val e: Throwable) : AppError()
 
@@ -29,7 +29,7 @@ sealed class AppError {
                 )
             }
             is NoThisFilm -> RestResponse.status(RestResponse.Status.NOT_FOUND, "Film Id ${err.epId} is not exist")
-            is CastToFilmFail -> RestResponse.status(RestResponse.Status.INTERNAL_SERVER_ERROR, "Any ${err.obj} is not a FilmEntity")
+            is RowToFilmFail -> RestResponse.status(RestResponse.Status.INTERNAL_SERVER_ERROR, "Any ${err.obj} is not a FilmEntity")
             is idTokenEmpty -> RestResponse.status(RestResponse.Status.FORBIDDEN, "id Token Empty")
 
             is CreateUserFail -> {
@@ -39,8 +39,6 @@ sealed class AppError {
                     "create user error \n ${err.e.stackTraceToString()}"
                 )
             }
-
-
         }
     }
 }
