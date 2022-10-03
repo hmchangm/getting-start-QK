@@ -37,7 +37,7 @@ class FilmRepository(val client: PgPool) {
         ).execute(toFilmTuple(film)).awaitSuspending()
     }.mapLeft { AppError.DatabaseProblem(it) }.map { it.rowCount() }
     private fun toFilmTuple(film: Film): Tuple =
-        Tuple.of(film.episodeID, film.title, film.director, film.releaseDate, film.updater)
+        Tuple.wrap(listOf(film.episodeID, film.title, film.director, film.releaseDate, film.updater))
     suspend fun delete(film: Film): Either<AppError, Int> = Either.catch {
         client.preparedQuery("DELETE FROM films WHERE episodeId = $1")
             .execute(Tuple.of(film.episodeID)).awaitSuspending()
