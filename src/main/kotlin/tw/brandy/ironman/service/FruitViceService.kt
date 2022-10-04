@@ -1,5 +1,6 @@
 package tw.brandy.ironman.service
 
+import io.smallrye.mutiny.Uni
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient
 import tw.brandy.ironman.entity.FruityVice
 import javax.ws.rs.GET
@@ -14,5 +15,5 @@ interface FruityViceService {
     @GET
     @Path("/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getFruitByName(@PathParam("name") name: String): FruityVice?
+    fun getFruitByName(@PathParam("name") name: String): Uni<FruityVice>
 }
