@@ -8,12 +8,11 @@ import javax.ws.rs.PathParam
 import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 
-
 @Path("/api/fruit")
-@RegisterRestClient
+@RegisterRestClient(configKey = "fruits-api")
 interface FruityViceService {
     @GET
     @Path("/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getFruitByName(@PathParam("name") name: String?): FruityVice?
+    fun getFruitByName(@PathParam("name") name: String): FruityVice?
 }

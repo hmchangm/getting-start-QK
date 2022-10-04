@@ -15,7 +15,7 @@ import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
 @Path("/")
-class GreetingResource(val kaqConfig: KaqConfig, @RestClient val fruityViceService: FruityViceService) {
+class GreetingResource() {
 
     @ConfigProperty(name = "greeting.message")
     lateinit var message: String
@@ -39,16 +39,4 @@ class GreetingResource(val kaqConfig: KaqConfig, @RestClient val fruityViceServi
         "dbName" to ConfigProvider.getConfig().getValue("quarkus.mongodb.database", String::class.java)
     )
 
-    @GET
-    @Path("/fruit/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    suspend fun fruit(@PathParam("name") name: String) = Either.catch {
-        withContext(Dispatchers.IO) {
-            fruityViceService.getFruitByName(name)
-        }
-    }.mapLeft { AppError.DatabaseProblem(it) }.fold(
-        ifRight = ::identity,
-        ifLeft = { AppError.toResponse(it) }
-    )
 }

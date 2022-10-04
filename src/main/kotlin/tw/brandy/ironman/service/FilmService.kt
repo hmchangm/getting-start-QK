@@ -18,7 +18,6 @@ class FilmService(val filmRepository: FilmRepository) {
 
     suspend fun delete(id: Int) = filmRepository.findByEpisodeId(id)
         .flatMap { filmRepository.delete(it) }
-
     suspend fun update(film: Film) = filmRepository.update(film)
         .flatMap { filmRepository.findByEpisodeId(film.episodeID) }
 }
