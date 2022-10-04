@@ -60,7 +60,7 @@ class FilmResource(val filmService: FilmService, val mapper: ObjectMapper) {
     suspend fun count() = filmService.getFilmCount()
         .toRestResponse()
 
-    fun Either<AppError, Any>.toRestResponse(): RestResponse<String> =
+    public fun Either<AppError, Any>.toRestResponse(): RestResponse<String> =
         this.fold(
             ifRight = { obj ->
                 mapper.writeValueAsString(obj).let { RestResponse.ok(it) }

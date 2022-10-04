@@ -1,16 +1,21 @@
 package tw.brandy.ironman.resource
 
+import arrow.core.Either
+import arrow.core.identity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.eclipse.microprofile.config.ConfigProvider
 import org.eclipse.microprofile.config.inject.ConfigProperty
+import org.eclipse.microprofile.rest.client.inject.RestClient
+import org.jboss.resteasy.reactive.RestResponse
+import tw.brandy.ironman.AppError
 import tw.brandy.ironman.entity.KaqConfig
-import javax.ws.rs.Consumes
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
+import tw.brandy.ironman.service.FruityViceService
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
 @Path("/")
-class GreetingResource(val kaqConfig: KaqConfig) {
+class GreetingResource(val kaqConfig: KaqConfig, @RestClient val fruityViceService: FruityViceService) {
 
     @ConfigProperty(name = "greeting.message")
     lateinit var message: String
@@ -32,5 +37,18 @@ class GreetingResource(val kaqConfig: KaqConfig) {
     @Consumes(MediaType.APPLICATION_JSON)
     suspend fun kaq() = mapOf(
         "dbName" to ConfigProvider.getConfig().getValue("quarkus.mongodb.database", String::class.java)
+    )
+
+    @GET
+    @Path("/fruit/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    suspend fun fruit(@PathParam("name") name: String) = Either.catch {
+        withContext(Dispatchers.IO) {
+            fruityViceService.getFruitByName(name)
+        }
+    }.mapLeft { AppError.DatabaseProblem(it) }.fold(
+        ifRight = ::identity,
+        ifLeft = { AppError.toResponse(it) }
     )
 }
