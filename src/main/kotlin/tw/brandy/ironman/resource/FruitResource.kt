@@ -1,6 +1,9 @@
 package tw.brandy.ironman.resource
 
 import arrow.core.identity
+import arrow.core.traverse
+import arrow.fx.coroutines.parTraverseEither
+import kotlinx.coroutines.Dispatchers
 import tw.brandy.ironman.AppError
 import tw.brandy.ironman.service.FruitService
 import javax.ws.rs.Consumes
@@ -21,4 +24,28 @@ class FruitResource(val fruitService: FruitService) {
         ifRight = ::identity,
         ifLeft = { AppError.toResponse(it) }
     )
+
+    @GET
+    @Path("/par")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    suspend fun allParFruit() = listOf("apple", "banana", "guava", "Apricot", "Blueberry")
+        .parTraverseEither(Dispatchers.IO) {
+            fruitService.findByName(it)
+        }.fold(
+            ifRight = ::identity,
+            ifLeft = { AppError.toResponse(it) }
+        )
+
+    @GET
+    @Path("/all")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    suspend fun allFruit() = listOf("apple", "banana", "guava", "Apricot", "Blueberry")
+        .traverse {
+            fruitService.findByName(it)
+        }.fold(
+            ifRight = ::identity,
+            ifLeft = { AppError.toResponse(it) }
+        )
 }
