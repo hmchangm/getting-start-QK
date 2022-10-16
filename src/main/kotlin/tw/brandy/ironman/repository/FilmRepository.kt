@@ -9,6 +9,7 @@ import io.smallrye.mutiny.coroutines.awaitSuspending
 import org.bson.Document
 import tw.brandy.ironman.AppError
 import tw.brandy.ironman.entity.*
+import java.lang.RuntimeException
 import javax.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
@@ -29,7 +30,11 @@ class FilmRepository(val mongoClient: ReactiveMongoClient) {
         .flatMap { list -> list.traverse { from(it) } }
     suspend fun add(film: Film): Either<AppError, Film> = Either.catch {
         to(film).let { fruitCollection.insertOne(it).awaitSuspending() }
-    }.mapLeft { AppError.DatabaseProblem(it) }.map { film }
+    }.mapLeft { AppError.DatabaseProblem(it) }.flatMap { when (it.insertedId.toOption()) {
+        is Some -> film.right()
+        is None -> AppError.DatabaseProblem(RuntimeException("Not Inserted")).left()
+    }
+    }.map { film }
 
     suspend fun update(film: Film): Either<AppError, Film> = Either.catch {
         to(film).let {

@@ -12,5 +12,6 @@ class Startup(val filmRepository: FilmRepository) {
 
     fun onStart(@Observes ev: StartupEvent?) {
 
+
     }
 }
