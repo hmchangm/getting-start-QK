@@ -35,14 +35,19 @@ class FilmRepository(val mongoClient: ReactiveMongoClient) {
             is Some -> film.right()
             is None -> AppError.DatabaseProblem(RuntimeException("Not Inserted")).left()
         }
-    }.map { film }
+    }
 
     suspend fun update(film: Film): Either<AppError, Film> = Either.catch {
         to(film).let {
             fruitCollection.replaceOne(Filters.eq(EpisodeId.key, film.episodeId.raw), it)
                 .awaitSuspending()
         }
-    }.mapLeft { AppError.DatabaseProblem(it) }.map { film }
+    }.mapLeft { AppError.DatabaseProblem(it) }.flatMap {
+        when (it.modifiedCount) {
+            0L -> AppError.DatabaseProblem(RuntimeException("Not Updated")).left()
+            else -> film.right()
+        }
+    }
     suspend fun delete(film: Film): Either<AppError, Film> = Either.catch {
         fruitCollection.deleteOne(Filters.eq(EpisodeId.key, film.episodeId.raw)).awaitSuspending()
     }.mapLeft { AppError.DatabaseProblem(it) }.flatMap {
