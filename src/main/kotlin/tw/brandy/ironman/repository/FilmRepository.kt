@@ -1,47 +1,72 @@
 package tw.brandy.ironman.repository
 
-import arrow.core.Either
-import arrow.core.flatMap
-import arrow.core.toOption
-import arrow.core.traverse
-import io.quarkus.mongodb.panache.kotlin.reactive.runtime.KotlinReactiveMongoOperations.Companion.INSTANCE
+import arrow.core.*
+import arrow.core.continuations.either
+import com.mongodb.client.model.Filters
+import io.quarkus.mongodb.reactive.ReactiveMongoClient
+import io.quarkus.mongodb.reactive.ReactiveMongoCollection
 import io.smallrye.mutiny.coroutines.awaitSuspending
+import org.bson.Document
 import tw.brandy.ironman.AppError
-import tw.brandy.ironman.entity.FilmEntity
+import tw.brandy.ironman.entity.*
 import javax.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
-class FilmRepository {
-    suspend fun findByEpisodeId(id: Int): Either<AppError, FilmEntity> = Either.catch {
-        INSTANCE.find(
-            FilmEntity::class.java,
-            "episodeId",
-            id
-        ).firstResult().awaitSuspending()
-    }.mapLeft { AppError.DatabaseProblem(it) }
-        .flatMap {
-            it.toOption()
-                .toEither(ifEmpty = { AppError.NoThisFilm(id) })
-        }
-        .flatMap(anyToEntity)
-    suspend fun findAll(): Either<AppError, List<FilmEntity>> = Either.catch {
-        INSTANCE.findAll(FilmEntity::class.java).list().awaitSuspending()
+class FilmRepository(val mongoClient: ReactiveMongoClient) {
+
+    val fruitCollection: ReactiveMongoCollection<Document> by lazy {
+        mongoClient.getDatabase("ironman").getCollection("fruit")
+    }
+    suspend fun findByEpisodeId(episodeId: EpisodeId): Either<AppError, Film> = Either.catch {
+        fruitCollection.find(Filters.eq(EpisodeId.key, episodeId.raw)).toUni().awaitSuspending()
     }.mapLeft { e -> AppError.DatabaseProblem(e) }
-        .flatMap { list -> list.traverse { anyToEntity(it) } }
-    suspend fun persistOrUpdate(film: FilmEntity): Either<AppError, FilmEntity> = Either.catch {
-        INSTANCE.persistOrUpdate(film).awaitSuspending()
+        .flatMap { it.toOption().toEither(ifEmpty = { AppError.NoThisFilm(episodeId) }) }
+        .flatMap { from(it) }
+
+    suspend fun findAll(): Either<AppError, List<Film>> = Either.catch {
+        fruitCollection.find().collect().asList().awaitSuspending()
+    }.mapLeft { e -> AppError.DatabaseProblem(e) }
+        .flatMap { list -> list.traverse { from(it) } }
+    suspend fun add(film: Film): Either<AppError, Film> = Either.catch {
+        to(film).let { fruitCollection.insertOne(it).awaitSuspending() }
     }.mapLeft { AppError.DatabaseProblem(it) }.map { film }
 
-    suspend fun delete(film: FilmEntity): Either<AppError, FilmEntity> = Either.catch {
-        INSTANCE.delete(film).awaitSuspending()
+    suspend fun update(film: Film): Either<AppError, Film> = Either.catch {
+        to(film).let {
+            fruitCollection.updateOne(Filters.eq(EpisodeId.key, film.episodeId.raw), it)
+                .awaitSuspending()
+        }
     }.mapLeft { AppError.DatabaseProblem(it) }.map { film }
+    suspend fun delete(film: Film): Either<AppError, Film> = Either.catch {
+        fruitCollection.deleteOne(Filters.eq(EpisodeId.key, film.episodeId.raw)).awaitSuspending()
+    }.mapLeft { AppError.DatabaseProblem(it) }.flatMap {
+        when (it.deletedCount) {
+            0L -> AppError.NoThisFilm(film.episodeId).left()
+            else -> film.right()
+        }
+    }
+
     suspend fun count(): Either<AppError, Long> = Either.catch {
-        INSTANCE.count(FilmEntity::class.java).awaitSuspending()
+        fruitCollection.countDocuments().awaitSuspending()
     }.mapLeft { AppError.DatabaseProblem(it) }
 
-    val anyToEntity: (Any?) -> Either<AppError, FilmEntity> = { it ->
-        Either.catch {
-            it as FilmEntity
-        }.mapLeft { AppError.CastToFilmFail(it) }
+    val from: suspend (Document) -> Either<AppError, Film> = { doc ->
+        either {
+            Film(
+                doc.getString(EpisodeId.key).let { EpisodeId.from(it) }.bind(),
+                Title(doc.getString(Title.key)),
+                Director(doc.getString(Director.key)),
+                ReleaseDate(doc.getDate(ReleaseDate.key))
+            )
+        }
+    }
+
+    val to: suspend (Film) -> Document = { film ->
+        Document().apply {
+            append(EpisodeId.key, film.episodeId.raw)
+            append(Title.key, film.title.raw)
+            append(Director.key, film.director.raw)
+            append(ReleaseDate.key, film.releaseDate.raw)
+        }
     }
 }

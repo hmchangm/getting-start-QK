@@ -31,7 +31,7 @@
   <dependencies>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+      <artifactId>quarkus-resteasy-reactive-kotlin-serialization</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -164,12 +164,18 @@
             <artifactId>kotlin-maven-allopen</artifactId>
             <version>${kotlin.version}</version>
           </dependency>
+          <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-maven-serialization</artifactId>
+            <version>${kotlin.version}</version>
+          </dependency>
         </dependencies>
         <configuration>
           <javaParameters>true</javaParameters>
           <jvmTarget>11</jvmTarget>
           <compilerPlugins>
             <plugin>all-open</plugin>
+            <plugin>kotlinx-serialization</plugin>
           </compilerPlugins>
           <pluginOptions>
             <option>all-open:annotation=javax.ws.rs.Path</option>

@@ -1,11 +1,14 @@
 package tw.brandy.ironman.resource
 
 import arrow.core.Either
-import com.fasterxml.jackson.databind.ObjectMapper
+import arrow.core.flatMap
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jboss.resteasy.reactive.RestResponse
 import tw.brandy.ironman.AppError
-import tw.brandy.ironman.entity.Film
+import tw.brandy.ironman.entity.*
 import tw.brandy.ironman.service.FilmService
+import java.util.*
 import javax.ws.rs.Consumes
 import javax.ws.rs.DELETE
 import javax.ws.rs.GET
@@ -18,16 +21,28 @@ import javax.ws.rs.core.MediaType
 @Path("/films")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-class FilmResource(val filmService: FilmService, val mapper: ObjectMapper) {
+class FilmResource(val filmService: FilmService) {
 
     @GET
     suspend fun list(): RestResponse<String> = filmService.getAllFilms()
         .toRestResponse()
 
     @GET
+    @Path("/addSome")
+    suspend fun addSome() = Film(
+        EpisodeId(UUID.randomUUID()),
+        Title("A New Hope"),
+        Director("Good"),
+        ReleaseDate(Date())
+    ).let {
+        filmService.save(it)
+    }.toRestResponse()
+
+    @GET
     @Path("/{id}")
-    suspend fun getById(id: Int) = filmService.getFilm(id)
-        .toRestResponse()
+    suspend fun getById(id: String) = EpisodeId.from(id).flatMap {
+        filmService.getFilm(it)
+    }.toRestResponse()
 
     @POST
     suspend fun add(film: Film) = filmService.save(film)
@@ -40,19 +55,20 @@ class FilmResource(val filmService: FilmService, val mapper: ObjectMapper) {
 
     @DELETE
     @Path("/{id}")
-    suspend fun delete(id: Int) = filmService.delete(id)
-        .toRestResponse()
+    suspend fun delete(id: String) = EpisodeId.from(id).flatMap {
+        filmService.delete(it)
+    }.toRestResponse()
 
     @GET
     @Path("/count")
     suspend fun count() = filmService.getFilmCount()
         .toRestResponse()
-
-    fun Either<AppError, Any>.toRestResponse(): RestResponse<String> =
-        this.fold(
-            ifRight = { obj ->
-                mapper.writeValueAsString(obj).let { RestResponse.ok(it) }
-            },
-            ifLeft = { AppError.toResponse(it) }
-        )
 }
+inline fun <reified T : Any> Either<AppError, T>.toRestResponse(): RestResponse<String> =
+    this.flatMap { obj ->
+        Either.catch { Json.encodeToString(obj) }
+            .mapLeft { AppError.JsonSerializationFail(it) }
+    }.fold(
+        ifRight = { RestResponse.ok(it) },
+        ifLeft = { AppError.toResponse(it) }
+    )
