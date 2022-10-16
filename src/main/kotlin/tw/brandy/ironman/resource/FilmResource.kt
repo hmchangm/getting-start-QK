@@ -6,9 +6,11 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jboss.resteasy.reactive.RestResponse
 import tw.brandy.ironman.AppError
-import tw.brandy.ironman.entity.*
+import tw.brandy.ironman.JsonSerializationFail
+import tw.brandy.ironman.entity.AddFilmForm
+import tw.brandy.ironman.entity.EpisodeId
+import tw.brandy.ironman.entity.Film
 import tw.brandy.ironman.service.FilmService
-import java.util.*
 import javax.ws.rs.Consumes
 import javax.ws.rs.DELETE
 import javax.ws.rs.GET
@@ -56,8 +58,8 @@ class FilmResource(val filmService: FilmService) {
 inline fun <reified T : Any> Either<AppError, T>.toRestResponse(): RestResponse<String> =
     this.flatMap { obj ->
         Either.catch { Json.encodeToString(obj) }
-            .mapLeft { AppError.JsonSerializationFail(it) }
+            .mapLeft { JsonSerializationFail(it) }
     }.fold(
         ifRight = { RestResponse.ok(it) },
-        ifLeft = { AppError.toResponse(it) }
+        ifLeft = { ResponseHandler.toResponse(it) }
     )

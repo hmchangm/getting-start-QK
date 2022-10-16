@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import tw.brandy.ironman.AppError
 import tw.brandy.ironman.DateSerializer
 import tw.brandy.ironman.UuidSerializer
+import tw.brandy.ironman.WrongUUIDFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -24,11 +25,11 @@ value class EpisodeId(@Serializable(UuidSerializer::class) private val s: UUID) 
     val raw get() = s.toString()
 
     companion object {
-        fun from(str: String): Either<AppError.WrongUUIDFormat, EpisodeId> {
+        fun from(str: String): Either<WrongUUIDFormat, EpisodeId> {
             return Either.catch {
                 EpisodeId(UUID.fromString(str))
             }.mapLeft {
-                AppError.WrongUUIDFormat(str)
+                WrongUUIDFormat(str)
             }
         }
         val key get() = "episodeId"
