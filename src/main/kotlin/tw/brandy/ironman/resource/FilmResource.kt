@@ -28,24 +28,13 @@ class FilmResource(val filmService: FilmService) {
         .toRestResponse()
 
     @GET
-    @Path("/addSome")
-    suspend fun addSome() = Film(
-        EpisodeId(UUID.randomUUID()),
-        Title("A New Hope"),
-        Director("Good"),
-        ReleaseDate(Date())
-    ).let {
-        filmService.save(it)
-    }.toRestResponse()
-
-    @GET
     @Path("/{id}")
     suspend fun getById(id: String) = EpisodeId.from(id).flatMap {
         filmService.getFilm(it)
     }.toRestResponse()
 
     @POST
-    suspend fun add(film: Film) = filmService.save(film)
+    suspend fun add(form: AddFilmForm) = filmService.add(form)
         .toRestResponse()
 
     @PUT

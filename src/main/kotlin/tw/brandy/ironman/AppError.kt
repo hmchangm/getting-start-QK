@@ -29,7 +29,10 @@ sealed class AppError {
                 )
             }
 
-            is NoThisFilm -> RestResponse.status(RestResponse.Status.NOT_FOUND, "Film Id ${err.id} is not exist")
+            is NoThisFilm -> {
+                LOG.error("Film Id ${err.id} is not exist")
+                RestResponse.status(RestResponse.Status.NOT_FOUND, "Film Id ${err.id} is not exist")
+            }
 
             is WrongUUIDFormat -> RestResponse.status(RestResponse.Status.BAD_REQUEST, "Not a UUID: ${err.str} ")
         }

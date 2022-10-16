@@ -15,7 +15,7 @@ class GreetingResourceTest {
             get("/hello")
         } Then {
             statusCode(200)
-            body(equalTo("Hello from RESTEasy Reactive"))
+            body(equalTo("Hello from RESTEasy Reactive back quarkus"))
         }
     }
 }

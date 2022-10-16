@@ -1,12 +1,14 @@
 package tw.brandy.ironman.entity
 
 import arrow.core.Either
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import tw.brandy.ironman.AppError
 import tw.brandy.ironman.DateSerializer
 import tw.brandy.ironman.UuidSerializer
-import java.util.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
 
 @JvmInline
 @Serializable
@@ -45,7 +47,12 @@ value class Director(val raw: String) {
 @Serializable
 value class ReleaseDate(@Serializable(DateSerializer::class) val raw: Date) {
     companion object {
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
         val key get() = "releaseDay"
+
+        fun fromIsoDate(iso: String): ReleaseDate {
+            return ReleaseDate(formatter.parse(iso))
+        }
     }
 }
 

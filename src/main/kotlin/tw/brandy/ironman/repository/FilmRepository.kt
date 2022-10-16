@@ -38,7 +38,7 @@ class FilmRepository(val mongoClient: ReactiveMongoClient) {
 
     suspend fun update(film: Film): Either<AppError, Film> = Either.catch {
         to(film).let {
-            fruitCollection.updateOne(Filters.eq(EpisodeId.key, film.episodeId.raw), it)
+            fruitCollection.replaceOne(Filters.eq(EpisodeId.key, film.episodeId.raw), it)
                 .awaitSuspending()
         }
     }.mapLeft { AppError.DatabaseProblem(it) }.map { film }
