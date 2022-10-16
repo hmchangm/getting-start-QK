@@ -30,10 +30,11 @@ class FilmRepository(val mongoClient: ReactiveMongoClient) {
         .flatMap { list -> list.traverse { from(it) } }
     suspend fun add(film: Film): Either<AppError, Film> = Either.catch {
         to(film).let { fruitCollection.insertOne(it).awaitSuspending() }
-    }.mapLeft { AppError.DatabaseProblem(it) }.flatMap { when (it.insertedId.toOption()) {
-        is Some -> film.right()
-        is None -> AppError.DatabaseProblem(RuntimeException("Not Inserted")).left()
-    }
+    }.mapLeft { AppError.DatabaseProblem(it) }.flatMap {
+        when (it.insertedId.toOption()) {
+            is Some -> film.right()
+            is None -> AppError.DatabaseProblem(RuntimeException("Not Inserted")).left()
+        }
     }.map { film }
 
     suspend fun update(film: Film): Either<AppError, Film> = Either.catch {
