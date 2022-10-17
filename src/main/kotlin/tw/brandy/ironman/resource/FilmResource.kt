@@ -1,11 +1,7 @@
 package tw.brandy.ironman.resource
 
-import arrow.core.Either
 import arrow.core.flatMap
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.jboss.resteasy.reactive.RestResponse
-import tw.brandy.ironman.AppError
 import tw.brandy.ironman.entity.*
 import tw.brandy.ironman.service.FilmService
 import javax.ws.rs.Consumes
@@ -52,11 +48,3 @@ class FilmResource(val filmService: FilmService) {
     suspend fun count() = filmService.getFilmCount()
         .toRestResponse(RestResponse.Status.OK)
 }
-inline fun <reified T : Any> Either<AppError, T>.toRestResponse(status: RestResponse.Status): RestResponse<String> =
-    this.flatMap { obj ->
-        Either.catch { Json.encodeToString(obj) }
-            .mapLeft { AppError.JsonSerializationFail(it) }
-    }.fold(
-        ifRight = { RestResponse.ResponseBuilder.ok(it).status(status).build() },
-        ifLeft = { AppError.toResponse(it) }
-    )
