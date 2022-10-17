@@ -8,7 +8,6 @@ import org.jboss.resteasy.reactive.RestResponse
 import tw.brandy.ironman.AppError
 import tw.brandy.ironman.entity.*
 import tw.brandy.ironman.service.FilmService
-import java.util.*
 import javax.ws.rs.Consumes
 import javax.ws.rs.DELETE
 import javax.ws.rs.GET
@@ -25,39 +24,39 @@ class FilmResource(val filmService: FilmService) {
 
     @GET
     suspend fun list(): RestResponse<String> = filmService.getAllFilms()
-        .toRestResponse()
+        .toRestResponse(RestResponse.Status.OK)
 
     @GET
     @Path("/{id}")
     suspend fun getById(id: String) = EpisodeId.from(id).flatMap {
         filmService.getFilm(it)
-    }.toRestResponse()
+    }.toRestResponse(RestResponse.Status.OK)
 
     @POST
     suspend fun add(form: AddFilmForm) = filmService.add(form)
-        .toRestResponse()
+        .toRestResponse(RestResponse.Status.CREATED)
 
     @PUT
     @Path("/{id}")
     suspend fun update(film: Film) = filmService.update(film)
-        .toRestResponse()
+        .toRestResponse(RestResponse.Status.OK)
 
     @DELETE
     @Path("/{id}")
     suspend fun delete(id: String) = EpisodeId.from(id).flatMap {
         filmService.delete(it)
-    }.toRestResponse()
+    }.toRestResponse(RestResponse.Status.OK)
 
     @GET
     @Path("/count")
     suspend fun count() = filmService.getFilmCount()
-        .toRestResponse()
+        .toRestResponse(RestResponse.Status.OK)
 }
-inline fun <reified T : Any> Either<AppError, T>.toRestResponse(): RestResponse<String> =
+inline fun <reified T : Any> Either<AppError, T>.toRestResponse(status: RestResponse.Status): RestResponse<String> =
     this.flatMap { obj ->
         Either.catch { Json.encodeToString(obj) }
             .mapLeft { AppError.JsonSerializationFail(it) }
     }.fold(
-        ifRight = { RestResponse.ok(it) },
+        ifRight = { RestResponse.ResponseBuilder.ok(it).status(status).build() },
         ifLeft = { AppError.toResponse(it) }
     )

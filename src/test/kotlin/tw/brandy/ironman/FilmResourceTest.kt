@@ -53,7 +53,7 @@ class FilmResourceTest {
         } When {
             post("/films")
         } Then {
-            statusCode(200)
+            statusCode(201)
             body("title", `is`("Spider Man"))
             body("director", equalTo("Sam Raimi"))
         } Extract {
