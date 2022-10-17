@@ -8,6 +8,8 @@ import io.quarkus.mongodb.reactive.ReactiveMongoCollection
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import org.bson.Document
 import tw.brandy.ironman.AppError
+import tw.brandy.ironman.DatabaseProblem
+import tw.brandy.ironman.NoThisFilm
 import tw.brandy.ironman.entity.*
 import java.lang.RuntimeException
 import javax.enterprise.context.ApplicationScoped
@@ -20,20 +22,20 @@ class FilmRepository(val mongoClient: ReactiveMongoClient) {
     }
     suspend fun findByEpisodeId(episodeId: EpisodeId): Either<AppError, Film> = Either.catch {
         fruitCollection.find(Filters.eq(EpisodeId.key, episodeId.raw)).toUni().awaitSuspending()
-    }.mapLeft { e -> AppError.DatabaseProblem(e) }
-        .flatMap { it.toOption().toEither(ifEmpty = { AppError.NoThisFilm(episodeId) }) }
+    }.mapLeft { e -> DatabaseProblem(e) }
+        .flatMap { it.toOption().toEither(ifEmpty = { NoThisFilm(episodeId) }) }
         .flatMap { from(it) }
 
     suspend fun findAll(): Either<AppError, List<Film>> = Either.catch {
         fruitCollection.find().collect().asList().awaitSuspending()
-    }.mapLeft { e -> AppError.DatabaseProblem(e) }
+    }.mapLeft { e -> DatabaseProblem(e) }
         .flatMap { list -> list.traverse { from(it) } }
     suspend fun add(film: Film): Either<AppError, Film> = Either.catch {
         to(film).let { fruitCollection.insertOne(it).awaitSuspending() }
-    }.mapLeft { AppError.DatabaseProblem(it) }.flatMap {
+    }.mapLeft { DatabaseProblem(it) }.flatMap {
         when (it.insertedId.toOption()) {
             is Some -> film.right()
-            is None -> AppError.DatabaseProblem(RuntimeException("Not Inserted")).left()
+            is None -> DatabaseProblem(RuntimeException("Not Inserted")).left()
         }
     }
 
@@ -42,24 +44,24 @@ class FilmRepository(val mongoClient: ReactiveMongoClient) {
             fruitCollection.replaceOne(Filters.eq(EpisodeId.key, film.episodeId.raw), it)
                 .awaitSuspending()
         }
-    }.mapLeft { AppError.DatabaseProblem(it) }.flatMap {
+    }.mapLeft { DatabaseProblem(it) }.flatMap {
         when (it.modifiedCount) {
-            0L -> AppError.DatabaseProblem(RuntimeException("Not Updated")).left()
+            0L -> DatabaseProblem(RuntimeException("Not Updated")).left()
             else -> film.right()
         }
     }
     suspend fun delete(film: Film): Either<AppError, Film> = Either.catch {
         fruitCollection.deleteOne(Filters.eq(EpisodeId.key, film.episodeId.raw)).awaitSuspending()
-    }.mapLeft { AppError.DatabaseProblem(it) }.flatMap {
+    }.mapLeft { DatabaseProblem(it) }.flatMap {
         when (it.deletedCount) {
-            0L -> AppError.NoThisFilm(film.episodeId).left()
+            0L -> NoThisFilm(film.episodeId).left()
             else -> film.right()
         }
     }
 
     suspend fun count(): Either<AppError, Long> = Either.catch {
         fruitCollection.countDocuments().awaitSuspending()
-    }.mapLeft { AppError.DatabaseProblem(it) }
+    }.mapLeft { DatabaseProblem(it) }
 
     val from: suspend (Document) -> Either<AppError, Film> = { doc ->
         either {

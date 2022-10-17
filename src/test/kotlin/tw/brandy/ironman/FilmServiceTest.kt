@@ -20,7 +20,7 @@ class FilmServiceTest {
     fun `test delete no this item`() {
         runBlocking {
             val id = EpisodeId(UUID.randomUUID())
-            assertEquals(AppError.NoThisFilm(id).left(), filmService.delete(id))
+            assertEquals(NoThisFilm(id).left(), filmService.delete(id))
         }
     }
 }
