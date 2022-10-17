@@ -20,31 +20,31 @@ class FilmResource(val filmService: FilmService) {
 
     @GET
     suspend fun list(): RestResponse<String> = filmService.getAllFilms()
-        .toRestResponse(RestResponse.Status.OK)
+        .toRestResponse()
 
     @GET
     @Path("/{id}")
     suspend fun getById(id: String) = EpisodeId.from(id).flatMap {
         filmService.getFilm(it)
-    }.toRestResponse(RestResponse.Status.OK)
+    }.toRestResponse()
 
     @POST
     suspend fun add(form: AddFilmForm) = filmService.add(form)
-        .toRestResponse(RestResponse.Status.CREATED)
+        .toCreatedResponse()
 
     @PUT
     @Path("/{id}")
     suspend fun update(film: Film) = filmService.update(film)
-        .toRestResponse(RestResponse.Status.OK)
+        .toRestResponse()
 
     @DELETE
     @Path("/{id}")
     suspend fun delete(id: String) = EpisodeId.from(id).flatMap {
         filmService.delete(it)
-    }.toRestResponse(RestResponse.Status.OK)
+    }.toRestResponse()
 
     @GET
     @Path("/count")
     suspend fun count() = filmService.getFilmCount()
-        .toRestResponse(RestResponse.Status.OK)
+        .toRestResponse()
 }

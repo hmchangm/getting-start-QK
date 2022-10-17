@@ -40,8 +40,14 @@ object ResponseHandler {
     }
 }
 
-inline fun <reified T> Either<AppError, T>.toRestResponse(status: RestResponse.Status): RestResponse<String> =
-    this.flatMap { obj ->
+inline fun <reified T> Either<AppError, T>.toRestResponse(): RestResponse<String> =
+    toRestResponseBase(this, RestResponse.Status.OK)
+
+inline fun <reified T> Either<AppError, T>.toCreatedResponse(): RestResponse<String> =
+    toRestResponseBase(this, RestResponse.Status.CREATED)
+
+inline fun <reified T> toRestResponseBase(either: Either<AppError, T>, status: RestResponse.Status): RestResponse<String> =
+    either.flatMap { obj ->
         Either.catch { Json.encodeToString(obj) }
             .mapLeft { JsonSerializationFail(it) }
     }.fold(
