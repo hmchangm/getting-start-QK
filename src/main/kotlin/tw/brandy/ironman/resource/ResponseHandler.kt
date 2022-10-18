@@ -6,11 +6,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jboss.logging.Logger
 import org.jboss.resteasy.reactive.RestResponse
-import tw.brandy.ironman.AppError
-import tw.brandy.ironman.DatabaseProblem
-import tw.brandy.ironman.JsonSerializationFail
-import tw.brandy.ironman.NoThisFilm
-import tw.brandy.ironman.WrongUUIDFormat
+import tw.brandy.ironman.*
 import tw.brandy.ironman.resource.ResponseHandler.toResponse
 
 object ResponseHandler {
@@ -37,6 +33,13 @@ object ResponseHandler {
         }
 
         is WrongUUIDFormat -> RestResponse.status(RestResponse.Status.BAD_REQUEST, "Not a UUID: ${err.str} ")
+        is FruitServiceCallError -> {
+            LOG.error("Call Fruit Service Fail", err.e)
+            RestResponse.status(
+                RestResponse.Status.BAD_REQUEST,
+                "Call Fruit Service Fail ${err.e.stackTraceToString()}"
+            )
+        }
     }
 }
 
