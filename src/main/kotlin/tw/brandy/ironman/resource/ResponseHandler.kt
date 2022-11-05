@@ -45,13 +45,13 @@ object ResponseHandler {
 
 val objectMapper: ObjectMapper = jacksonObjectMapper()
 
-inline fun <reified T> Either<AppError, T>.toRestResponse(): RestResponse<String> =
+inline fun <T> Either<AppError, T>.toRestResponse(): RestResponse<String> =
     toRestResponseBase(this, RestResponse.Status.OK)
 
-inline fun <reified T> Either<AppError, T>.toCreatedResponse(): RestResponse<String> =
+inline fun <T> Either<AppError, T>.toCreatedResponse(): RestResponse<String> =
     toRestResponseBase(this, RestResponse.Status.CREATED)
 
-inline fun <reified T> toRestResponseBase(either: Either<AppError, T>, status: RestResponse.Status): RestResponse<String> =
+inline fun <T> toRestResponseBase(either: Either<AppError, T>, status: RestResponse.Status): RestResponse<String> =
     either.flatMap { obj ->
         Either.catch { objectMapper.writeValueAsString(obj) }
             .mapLeft { JsonSerializationFail(it) }
