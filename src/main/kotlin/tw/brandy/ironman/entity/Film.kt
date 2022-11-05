@@ -1,7 +1,6 @@
 package tw.brandy.ironman.entity
 
 import arrow.core.Either
-import com.fasterxml.jackson.annotation.JsonProperty
 import tw.brandy.ironman.WrongUUIDFormat
 import java.text.SimpleDateFormat
 import java.util.Date
