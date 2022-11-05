@@ -51,12 +51,8 @@ value class ReleaseDate(val raw: Date) {
 }
 
 data class Film(
-    @field:JsonProperty("episodeId")
     val episodeId: EpisodeId,
-    @field:JsonProperty("title")
     val title: Title,
-    @field:JsonProperty("director")
     val director: Director,
-    @field:JsonProperty("releaseDate")
     val releaseDate: ReleaseDate
 )
