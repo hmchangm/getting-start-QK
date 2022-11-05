@@ -2,8 +2,8 @@ package tw.brandy.ironman.resource
 
 import arrow.core.Either
 import arrow.core.flatMap
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.quarkus.arc.Arc
 import org.jboss.logging.Logger
 import org.jboss.resteasy.reactive.RestResponse
 import tw.brandy.ironman.*
@@ -43,6 +43,8 @@ object ResponseHandler {
     }
 }
 
+val objectMapper: ObjectMapper by lazy { Arc.container().instance(ObjectMapper::class.java).get() }
+
 inline fun <reified T> Either<AppError, T>.toRestResponse(): RestResponse<String> =
     toRestResponseBase(this, RestResponse.Status.OK)
 
@@ -51,7 +53,7 @@ inline fun <reified T> Either<AppError, T>.toCreatedResponse(): RestResponse<Str
 
 inline fun <reified T> toRestResponseBase(either: Either<AppError, T>, status: RestResponse.Status): RestResponse<String> =
     either.flatMap { obj ->
-        Either.catch { Json.encodeToString(obj) }
+        Either.catch { objectMapper.writeValueAsString(obj) }
             .mapLeft { JsonSerializationFail(it) }
     }.fold(
         ifRight = { RestResponse.ResponseBuilder.ok(it).status(status).build() },

@@ -18,7 +18,7 @@ class FruitResource(val fruitService: FruitService) {
     @Path("/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    suspend fun fruit(@PathParam("name") name: String) = fruitService.findByName(name).toRestResponse()
+    suspend fun fruit(@PathParam("name") name: String) = fruitService.findByNameWithCache(name).toRestResponse()
 
     @GET
     @Path("/par")
@@ -26,7 +26,7 @@ class FruitResource(val fruitService: FruitService) {
     @Consumes(MediaType.APPLICATION_JSON)
     suspend fun allParFruit() = listOf("apple", "banana", "guava", "Apricot", "Blueberry")
         .parTraverseEither(Dispatchers.IO) {
-            fruitService.findByName(it)
+            fruitService.findByNameWithCache(it)
         }.toRestResponse()
 
     @GET
@@ -35,6 +35,6 @@ class FruitResource(val fruitService: FruitService) {
     @Consumes(MediaType.APPLICATION_JSON)
     suspend fun allFruit() = listOf("apple", "banana", "guava", "Apricot", "Blueberry")
         .traverse {
-            fruitService.findByName(it)
+            fruitService.findByNameWithCache(it)
         }.toRestResponse()
 }

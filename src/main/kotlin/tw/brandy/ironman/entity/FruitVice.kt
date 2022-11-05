@@ -1,8 +1,5 @@
 package tw.brandy.ironman.entity
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class FruityVice(
     val name: String,
     val genus: String,
@@ -12,5 +9,4 @@ data class FruityVice(
     val nutritions: Nutrition
 )
 
-@Serializable
 data class Nutrition(val carbohydrates: Long, val protein: Long, val fat: Double, val calories: Long, val sugar: Double)

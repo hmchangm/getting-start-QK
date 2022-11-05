@@ -1,10 +1,7 @@
 package tw.brandy.ironman.entity
 
 import arrow.core.Either
-import kotlinx.serialization.Serializable
-import tw.brandy.ironman.AppError
-import tw.brandy.ironman.DateSerializer
-import tw.brandy.ironman.UuidSerializer
+import com.fasterxml.jackson.annotation.JsonProperty
 import tw.brandy.ironman.WrongUUIDFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -12,7 +9,6 @@ import java.util.Locale
 import java.util.UUID
 
 @JvmInline
-@Serializable
 value class Title(val raw: String) {
     companion object {
         val key get() = "title"
@@ -20,8 +16,7 @@ value class Title(val raw: String) {
 }
 
 @JvmInline
-@Serializable
-value class EpisodeId(@Serializable(UuidSerializer::class) private val s: UUID) {
+value class EpisodeId(private val s: UUID) {
     val raw get() = s.toString()
 
     companion object {
@@ -37,7 +32,6 @@ value class EpisodeId(@Serializable(UuidSerializer::class) private val s: UUID) 
 }
 
 @JvmInline
-@Serializable
 value class Director(val raw: String) {
     companion object {
         val key get() = "director"
@@ -45,8 +39,7 @@ value class Director(val raw: String) {
 }
 
 @JvmInline
-@Serializable
-value class ReleaseDate(@Serializable(DateSerializer::class) val raw: Date) {
+value class ReleaseDate(val raw: Date) {
     companion object {
         val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
         val key get() = "releaseDay"
@@ -57,10 +50,13 @@ value class ReleaseDate(@Serializable(DateSerializer::class) val raw: Date) {
     }
 }
 
-@Serializable
 data class Film(
+    @field:JsonProperty("episodeId")
     val episodeId: EpisodeId,
+    @field:JsonProperty("title")
     val title: Title,
+    @field:JsonProperty("director")
     val director: Director,
+    @field:JsonProperty("releaseDate")
     val releaseDate: ReleaseDate
 )

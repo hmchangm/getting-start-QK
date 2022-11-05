@@ -31,6 +31,6 @@ class GreetingResource(val kaqConfig: KaqConfig) {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     suspend fun kaq() = mapOf(
-        "dbName" to ConfigProvider.getConfig().getValue("quarkus.mongodb.database", String::class.java)
+        "dbName1" to ConfigProvider.getConfig().getValue("quarkus.mongodb.database", String::class.java)
     )
 }
