@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.quarkus.arc.Arc
 import org.jboss.logging.Logger
 import org.jboss.resteasy.reactive.RestResponse
 import tw.brandy.ironman.AppError
@@ -48,7 +49,7 @@ object ResponseHandler {
     }
 }
 
-val objectMapper: ObjectMapper = jacksonObjectMapper()
+val objectMapper: ObjectMapper by lazy { Arc.container().instance(ObjectMapper::class.java).get() }
 
 inline fun <reified T> Either<AppError, T>.toRestResponse(): RestResponse<String> =
     toRestResponseBase(this, RestResponse.Status.OK)
