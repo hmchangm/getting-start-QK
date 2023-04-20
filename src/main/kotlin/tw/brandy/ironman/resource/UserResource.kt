@@ -16,7 +16,7 @@ class UsersResource {
     @GET
     @Path("/me")
     @NoCache
-    fun me(): User {
+    suspend fun me(): User {
         return User(idToken)
     }
 }
