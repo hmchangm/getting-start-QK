@@ -1,5 +1,6 @@
 package tw.brandy.ironman.test
 
+import arrow.core.getOrElse
 import arrow.core.traverse
 import io.quarkus.mongodb.panache.kotlin.reactive.runtime.KotlinReactiveMongoOperations
 import io.quarkus.runtime.StartupEvent
@@ -8,7 +9,9 @@ import io.smallrye.mutiny.infrastructure.Infrastructure
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
+import tw.brandy.ironman.entity.Film
 import tw.brandy.ironman.entity.FilmEntity
+import tw.brandy.ironman.repository.FilmRepo
 import tw.brandy.ironman.repository.FilmRepository
 import java.time.LocalDate
 import javax.enterprise.context.ApplicationScoped
@@ -21,7 +24,7 @@ class Startup(val filmRepository: FilmRepository) {
         GlobalScope.async(Infrastructure.getDefaultExecutor().asCoroutineDispatcher()) {
             KotlinReactiveMongoOperations.INSTANCE.deleteAll(FilmEntity::class.java).awaitSuspending()
             listOf(
-                FilmEntity(
+                Film(
                     episodeId = 4,
                     title = "A New Hope",
                     director = "George Lucas",
@@ -29,7 +32,7 @@ class Startup(val filmRepository: FilmRepository) {
                     updater = "brandy"
                 )
             ).plus(
-                FilmEntity(
+                Film(
                     episodeId = 5,
                     title = "The Empire Strikes Back",
                     director = "George Lucas",
@@ -37,15 +40,15 @@ class Startup(val filmRepository: FilmRepository) {
                     updater = "louis"
                 )
             ).plus(
-                FilmEntity(
+                Film(
                     episodeId = 6,
                     title = "Return Of The Jedi",
                     director = "George Lucas",
                     releaseDate = LocalDate.parse("1983-05-21"),
                     updater = "brandy"
                 )
-            ).let { list -> list.traverse { filmRepository.persistOrUpdate(it) } }
-            println("Data inserts ${filmRepository.findAll()}")
+            ).let { list -> list.traverse { FilmRepo.add(it) } }
+            println("Data inserts ${FilmRepo.findAll().getOrElse { emptyList() }}")
         }
     }
 }
